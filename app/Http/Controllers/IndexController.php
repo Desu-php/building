@@ -8,7 +8,7 @@ class IndexController
 {
     public function index(ListingService $listingService)
     {
-        $listings = $listingService->searInCenter(1.5);
+        $listings = $listingService->byWords(1.2);
 
         return view('welcome', compact('listings'));
     }

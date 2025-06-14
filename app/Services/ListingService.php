@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Listing\Listing;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
 class ListingService
@@ -37,6 +38,28 @@ class ListingService
         COS(RADIANS(longitude) - RADIANS(' . $this->longitude . '))
         ) <= ?', [$radius])
             ->where('floor', '<',10)
+            ->orderBy('price')
+            ->with('images')
+            ->get();
+    }
+
+    public function byWords(float $radius): Collection
+    {
+        $words = ['Центр', 'Универмаг', 'Марказ', 'Хукумат', 'Ватан'];
+
+        return Listing::query()
+            ->select('listings.*')
+            ->where('floor', '<', 10)
+            ->where('sostoyanie', 10)
+            ->where(function (Builder $query) use ($words) {
+                foreach ($words as $word) {
+                    $query->orWhere(function (Builder $subQuery) use ($word) {
+                        $subQuery
+                            ->where('title', 'ILIKE', "%{$word}%")
+                            ->orWhere('district', 'ILIKE', "%{$word}%");
+                    });
+                }
+            })
             ->orderBy('price')
             ->with('images')
             ->get();
